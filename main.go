@@ -2,18 +2,20 @@ package main
 
 import (
   "fmt"
+  "os"
   "net/http"
   "github.com/labstack/echo"
   "github.com/labstack/echo/middleware"
   "database/sql"
-  _ "github.com/go-sql-driver/mysql"
+  _ "github.com/lib/pq"
 
 )
 
-const DRIVER = "mysql"
-const DSN = "golang-test-user:golang-test-pass@tcp(go_api_db:3306)/golang-test-database"
+const DRIVER = "postgres"
+const DSN = "user=gwp dbname=gwp password=gwp sslmode=disable"
 
 func main() {
+  port := os.Getenv("PORT")
   e := echo.New()
   // Middleware
 	e.Use(middleware.Logger())
@@ -25,7 +27,7 @@ func main() {
   e.DELETE("/:date", deleteRecord)
   // e.GET("/users/:Id", getUser)
   // Start server
-  e.Logger.Fatal(e.Start(":1323"))
+  e.Logger.Fatal(e.Start(":"+port))
 }
 
 type Record struct{
@@ -83,7 +85,7 @@ func createRecord(c echo.Context) (err error){
   bfp := c.FormValue("bfp")
   mm := c.FormValue("mm")
 
-  ins, err := db.Prepare("INSERT INTO records(date, weight, bfp, mm) VALUES(?,?,?,?)")
+  ins, err := db.Prepare("INSERT INTO records(date, weight, bfp, mm) VALUES($1,$2,$3,$4)")
     if err != nil {
         fmt.Println(err)
     }
@@ -108,21 +110,21 @@ func updateRecord(c echo.Context) (err error){
   mm := c.QueryParam("mm")
   fmt.Println(date, weight, bfp, mm)
   if weight != ""{
-    upd, err := db.Prepare("UPDATE records set weight = ? where date = ? ")
+    upd, err := db.Prepare("UPDATE records set weight = $1 where date = $2 ")
       if err != nil {
           fmt.Println(err)
       }
       upd.Exec(weight, date)
   }
   if bfp != ""{
-    upd, err := db.Prepare("UPDATE records set bfp = ? where date = ? ")
+    upd, err := db.Prepare("UPDATE records set bfp = $1 where date = $2 ")
       if err != nil {
           fmt.Println(err)
       }
       upd.Exec(bfp, date)
   }
   if mm != ""{
-    upd, err := db.Prepare("UPDATE records set mm = ? where date = ? ")
+    upd, err := db.Prepare("UPDATE records set mm = $1 where date = $2 ")
       if err != nil {
           fmt.Println(err)
       }
@@ -145,7 +147,7 @@ func deleteRecord(c echo.Context) (err error){
   defer db.Close()
 
   date := c.Param("date")
-  del, err := db.Prepare("DELETE FROM records where date = ?")
+  del, err := db.Prepare("DELETE FROM records where date = $1")
     if err != nil {
         fmt.Println(err)
     }
