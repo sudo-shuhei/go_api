@@ -9,12 +9,18 @@ services:
     ports:
       - "1323:1323"
     depends_on:
-      - mysql
-  mysql:
-        image: mysql:latest
+      - db
+  db:
+        image: postgres:latest
         container_name: go_api_db
         environment:
-          MYSQL_ROOT_PASSWORD: root-pass
-          MYSQL_DATABASE: golang-test-database
-          MYSQL_USER: golang-test-user
-          MYSQL_PASSWORD: golang-test-pass
+          - POSTGRES_USER=postgres
+          - POSTGRES_PASSWORD=password
+          - PGPASSWORD=password
+          - POSTGRES_DB=testdb
+          - DATABASE_HOST=localhost
+
+          # MYSQL_ROOT_PASSWORD: root-pass
+          # MYSQL_DATABASE: golang-test-database
+          # MYSQL_USER: golang-test-user
+          # MYSQL_PASSWORD: golang-test-pass
